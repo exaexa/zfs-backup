@@ -1,2 +1,8 @@
 #!/bin/sh
 
+if [ -z "$1" ] ; then
+	echo "usage: $0 <zfs_volume>" >&2
+	exit 1
+fi
+
+exec zfs snapshot "${1}@zb-`date '+%F %T %z' |tr + p`"
