@@ -24,7 +24,7 @@ done |sort -n | while read l ; do
 		break
 	fi
 	
-	if [ `echo "$density*($curtime-$lasttime)/($timenow-$lasttime)"` -lt 1] ; then
+	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 1] ; then
 		zfs destroy "$snapname"
 	else
 		lasttime="$curtime"
