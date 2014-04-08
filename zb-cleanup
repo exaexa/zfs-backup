@@ -1,2 +1,32 @@
-#!/bin/sh
+#!/bin/bash
 
+if [[ -z "$1" || -z "$2" ]] ; then
+	echo "usage: $0 <volume> <density>" >&2
+	exit 1
+fi
+
+timestamp () {
+	t="`echo \"$1\" |sed -e 's/^.*@zb-//' |tr 'p_' '+ '`"
+	date --date="$t" +%s
+}
+
+density="$2"
+timenow=`date +%s`
+lasttime=0
+
+zfs list -t snapshot -r -d 1 -H "$1" |awk '{print $1;}' | while read l ; do
+	echo `timestamp "$l"` "$l"
+done |sort -n | while read l ; do
+	curtime=${l%% *}
+	snapname=${l#* }
+
+	if [ "$curtime" -ge "$timenow" ] ; then
+		break
+	fi
+	
+	if [ `echo "$density*($curtime-$lasttime)/($timenow-$lasttime)"` -lt 1] ; then
+		zfs destroy "$snapname"
+	else
+		lasttime="$curtime"
+	fi
+done
