@@ -6,16 +6,21 @@ if [[ -z "$1" || -z "$2" ]] ; then
 fi
 
 timestamp () {
-	t="`echo \"$1\" |sed -e 's/^.*@zb-//' |tr 'p_' '+ '`"
+	t="`echo \"$1\" |sed -ne 's/^.*@zb-//p' |tr 'p_' '+ '`"
+	[[ -z "$t" ]] && return 1
 	date --date="$t" +%s
+	return $?
 }
 
 density="$2"
 timenow=`date +%s`
 lasttime=0
 
+# list snapshots
 zfs list -t snapshot -r -d 1 -H "$1" |awk '{print $1;}' | while read l ; do
-	echo `timestamp "$l"` "$l"
+	#link unix timestamps
+	unixtime=`timestamp "$l"` || continue
+	echo "$unixtime" "$l"
 done |sort -n | while read l ; do
 	curtime=${l%% *}
 	snapname=${l#* }
@@ -24,7 +29,9 @@ done |sort -n | while read l ; do
 		break
 	fi
 	
-	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 1] ; then
+	#if it's too dense, delete the closer snapshot
+	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 1]
+	then
 		zfs destroy "$snapname"
 	else
 		lasttime="$curtime"

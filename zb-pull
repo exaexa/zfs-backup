@@ -1,2 +1,59 @@
 #!/bin/sh
 
+if [[ -z "$1" || -z "$2" || -z "$3" ]] ; then
+	echo "usage: $0 <ssh_remote> <remote_zfs_object> <local_zfs_object>" >&2
+	exit 1
+fi
+
+timestamp () {
+	t="`echo \"$1\" |sed -ne 's/^.*@zb-//p' |tr 'p_' '+ '`"
+	[[ -z "$t" ]] && return 1
+	date --date="$t" +%s
+	return $?
+}
+
+
+ssh_remote="$1"
+remote_zfs="$2"
+local_zfs="$3"
+
+# find newest available and newest common snapshot
+newest="N/A"
+newest_common="N/A"
+
+ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | while read l ; do
+	#link unix timestamps
+	unixtime=`timestamp "$l"` || continue
+	echo "$unixtime" "$l"
+done | sort -n | while read l ; do
+	curtime=${l%% *}
+	snapname=${l#* }
+
+	newest="$snapname"
+
+	if zfs list -t snapshot -H "${local_zfs}@zb-${snapname}" >/dev/null ; then
+		newest_common="$snapname"
+	fi
+done
+
+# some checks
+
+if [ "$newest" = "N/A" ] ; then
+	echo "$0: no remote snapshots available to pull" >&2
+	exit 2
+fi
+
+if [ "$newest" = "$newest_common" ] ; then
+	echo "$0: nothing new to pull" >&2
+	exit 0
+fi
+
+if [ "$newest_common" = "N/A" ] ; then
+	#do a full send
+	ssh $ssh_remote "zfs send \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
+	exit $?
+else
+	#do incremental send
+	ssh $ssh_remote "zfs send -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${$newest}\"" | zfs recv -F "${local_zfs}"
+	exit $?
+fi
