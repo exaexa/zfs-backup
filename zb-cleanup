@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -z "$1" || -z "$2" ]] ; then
-	echo "usage: $0 <volume> <density>" >&2
+	echo "usage: $0 <zfs_object> <density>" >&2
 	exit 1
 fi
 
