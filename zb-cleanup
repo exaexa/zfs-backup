@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -z "$1" || -z "$2" ]] ; then
-	echo "usage: $0 <zfs_object> <density>" >&2
+	echo "usage: $0 <zfs_object> <density_percent>" >&2
 	exit 1
 fi
 
@@ -30,7 +30,7 @@ done |sort -n | while read l ; do
 	fi
 	
 	#if it's too dense, delete the closer snapshot
-	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 1]
+	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 100 ]
 	then
 		zfs destroy "$snapname"
 	else
