@@ -5,6 +5,11 @@ if [[ -z "$1" || -z "$2" ]] ; then
 	exit 1
 fi
 
+if [[ "$2" -lt 100 ]] ; then
+	echo "density must not be lower than 100" >&2
+	exit 2
+fi
+
 timestamp () {
 	t="`echo \"$1\" |sed -ne 's/^.*@zb-//p' |tr 'p_' '+ '`"
 	[[ -z "$t" ]] && return 1
