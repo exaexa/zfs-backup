@@ -21,7 +21,7 @@ local_zfs="$3"
 newest="N/A"
 newest_common="N/A"
 
-ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | while read l ; do
+ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{print $1;}' | while read l ; do
 	#link unix timestamps
 	unixtime=`timestamp "$l"` || continue
 	echo "$unixtime" "$l"
