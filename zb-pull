@@ -54,6 +54,6 @@ if [ "$newest_common" = "N/A" ] ; then
 	exit $?
 else
 	#do incremental send
-	ssh $ssh_remote "zfs send -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${$newest}\"" | zfs recv -F "${local_zfs}"
+	ssh $ssh_remote "zfs send -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
 	exit $?
 fi
