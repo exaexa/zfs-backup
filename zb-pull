@@ -26,8 +26,8 @@ ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{pri
 	unixtime=`timestamp "$l"` || continue
 	echo "$unixtime" "$l"
 done | sort -n | while read l ; do
-	curtime=${l%% *}
-	snapname=${l#* }
+	fullname=${l#* }
+	snapname=${fullname#*@zb-}
 
 	newest="$snapname"
 
