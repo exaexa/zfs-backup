@@ -31,9 +31,9 @@ done | sort -n | while read l ; do
 
 	newest="$snapname"
 
-	if zfs list -t snapshot -H "${local_zfs}@zb-${snapname}" >/dev/null ; then
+	if zfs list -t snapshot -H "${local_zfs}@zb-${snapname}" ; then
 		newest_common="$snapname"
-	fi
+	fi >/dev/null 2>/dev/null
 done
 
 # some checks
