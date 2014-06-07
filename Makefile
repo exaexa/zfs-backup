@@ -1,9 +1,11 @@
 
 DESTDIR=/usr
+prefix := ${DESTDIR}/sbin/
+progs := zb-cleanup zb-pull zb-snap
+targets := $(foreach prog, $(progs), $(prefix)$(prog) )
 
-install:
-	cp zb-cleanup ${DESTDIR}/bin/zb-cleanup
-	cp zb-pull ${DESTDIR}/bin/zb-pull
-	cp zb-snap ${DESTDIR}/bin/zb-snap
-	cp zb-cron ${DESTDIR}/bin/zb-cron
+$(prefix)zb-% : zb-%
+	install ${INSTALL_FLAGS} $< $@
+
+install: $(targets)
 
