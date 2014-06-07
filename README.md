@@ -9,8 +9,8 @@ The zfs backing-up tool. ha-ha.
 - `zb-cleanup <zfs_object> <density> [max age]` destroys unnecessary
   snapshots
 - `zb-pull <ssh_connection> <local_zfs_object> <remote_zfs_object>` pulls most
-  recent snapshot of `remote_volume` to `volume`, using ssh called with
-  `ssh_options`
+  recent snapshots of `remote_zfs_object` to `local_zfs_object`, using ssh
+  called with `ssh_connection`
 
 ## Installation&requirements
 
