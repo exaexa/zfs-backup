@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [[ -z "$1" || -z "$2" ]] ; then
-	echo "usage: $0 <zfs_object> <density_percent>" >&2
+	echo "usage: $0 <zfs_object> <density_percent> [max_age]" >&2
 	exit 1
 fi
 
 if [[ "$2" -lt 100 ]] ; then
-	echo "density must not be lower than 100" >&2
+	echo "density must be >= 100" >&2
 	exit 2
 fi
 
@@ -16,6 +16,11 @@ timestamp () {
 	date --date="$t" +%s
 	return $?
 }
+
+max_age=0
+if [[ -n "$3" ]] ; then
+	max_age=`date --date="$3" +%s`
+fi
 
 density="$2"
 timenow=`date +%s`
@@ -30,12 +35,19 @@ done |sort -n | while read l ; do
 	curtime=${l%% *}
 	snapname=${l#* }
 
+	if [ "$curtime" -lt "$max_age" ] ; then
+		#too old
+		zfs destroy "$snapname"
+		continue
+	fi
+
 	if [ "$curtime" -ge "$timenow" ] ; then
+		#this actually shouldn't happen, but who knows
 		break
 	fi
 	
 	#if it's too dense, delete the closer snapshot
-	if [ $(( $density*($curtime-$lasttime)/($timenow-$lasttime) )) -lt 100 ]
+	if [ $(( ($density*($curtime-$lasttime))/($timenow-$lasttime) )) -lt 100 ]
 	then
 		zfs destroy "$snapname"
 	else
