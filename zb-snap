@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /etc/profile >&/dev/null
+source /etc/profile >/dev/null
 
 if [ -z "$1" ] ; then
 	echo "usage: $0 <zfs_object>" >&2

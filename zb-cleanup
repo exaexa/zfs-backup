@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /etc/profile >&/dev/null
+source /etc/profile >/dev/null
 
 if [[ -z "$1" || -z "$2" ]] ; then
 	echo "usage: $0 <zfs_object> <density_percent> [max_age]" >&2
