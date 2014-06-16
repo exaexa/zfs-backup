@@ -12,12 +12,22 @@ The zfs backing-up tool. ha-ha.
   recent snapshots of `remote_zfs_object` to `local_zfs_object`, using ssh
   called with `ssh_connection`
 
-## Installation&requirements
+## Requirements
 
 `bash` shell and `zfs` utils are needed. `zb-pull` requires `ssh`.
 
+zfs-backup requires GNU `date` or compatible, other `date` programs may fail.
+Test is simple, check if this command works for you:
+
+	date --date=now
+
+## Installation
+
 Run `make install`, it installs itself to some `sbin/`. You can also specify
 `DESTDIR=/usr/local/` or similar.
+
+For local changes (command aliases/wrappers, `PATH` setting etc.), file
+`$HOME/.zb-rc` is sourced before any commands are run.
 
 ## Example
 
@@ -78,7 +88,8 @@ And on remote backup machines:
 - `zb-pull` every morning
 - `zb-cleanup` with a slightly higher density number (it keeps more backups)
 
-### What exactly does zb-cleanup clean up?
+## FAQ
+#### What exactly does zb-cleanup clean up?
 
 Candidates for backup deletion are determined like this:
 
@@ -89,7 +100,7 @@ Candidates for backup deletion are determined like this:
 3. Calculate `density*(Y-X)/Y`. If the result is less than 1.0, delete the
    _closer_ backup.
 
-### How to determine your density and other numbers?
+#### How to determine your density and other numbers?
 
 Density is "maximum ratio of time between backups to age of backups, in
 percent".
@@ -112,6 +123,17 @@ Good approach to determine it (with all the other numbers) is this:
 4. Setup cron to run zb-snap periodically in time interval same as minimum
    value from the second row - in our case, daily. (probably in morning or
    somehow off-peak hours).
+
+#### It doesn't work from cron!
+
+Check if the environment is the same as when you test the stuff from the command line. At least two common caveats exist:
+
+- `PATH` may be different in cron (which may select wrong `date` program to
+  run, or not find something other like custom-installed `zfs`). Edit
+  `~/.zb-rc` and fix `PATH` there.
+- Some SSH authentication methods may not work from cron environment due to
+  missing `ssh-agent`, especially the password-protected privkeys. Descriptions
+  of many workarounds are available around the internet.
 
 ## Disclaimer
 
