@@ -51,12 +51,21 @@ if [ "$newest" = "$newest_common" ] ; then
 	exit 0
 fi
 
+ret=0
+
 if [ "$newest_common" = "N/A" ] ; then
 	#do a full send
 	ssh $ssh_remote "zfs send -R \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
-	exit $?
+	ret=$?
 else
 	#do incremental send
 	ssh $ssh_remote "zfs send -R -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
-	exit $?
+	ret=$?
 fi
+
+#in some cases and on some setups (Sun_SSH) when `zfs recv` fails, ssh ignores
+#the SIGPIPE and the connection hangs there forever, somehow. This fixes the
+#issue by killing all children that were possibly spawned by this shell.
+[ "$ZB_WORKAROUND_SSH_SIGPIPE" = "yes" ] && pkill -P $$
+
+exit $ret
