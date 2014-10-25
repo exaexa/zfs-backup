@@ -63,6 +63,8 @@ else
 	ret=$?
 fi
 
+[ "$ret" != 0 ] && echo "pulling to ${local_zfs} failed" >&2
+
 #in some cases and on some setups (Sun_SSH) when `zfs recv` fails, ssh ignores
 #the SIGPIPE and the connection hangs there forever, somehow. This fixes the
 #issue by killing all children that were possibly spawned by this shell.

@@ -40,7 +40,7 @@ done |sort -n | while read l ; do
 
 	if [ "$curtime" -lt "$max_age" ] ; then
 		#too old
-		zfs destroy "$snapname"
+		zfs destroy "$snapname" || echo "$0: zfs destroy $snapname failed" >&2
 		continue
 	fi
 
@@ -52,7 +52,7 @@ done |sort -n | while read l ; do
 	#if it's too dense, delete the closer snapshot
 	if [ $(( ($density*($curtime-$lasttime))/($timenow-$lasttime) )) -lt 100 ]
 	then
-		zfs destroy "$snapname"
+		zfs destroy "$snapname" || echo "$0: zfs destroy $snapname failed" >&2
 	else
 		lasttime="$curtime"
 	fi
