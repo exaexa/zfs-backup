@@ -24,11 +24,7 @@ local_zfs="$3"
 newest="N/A"
 newest_common="N/A"
 
-ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{print $1;}' | while read l ; do
-	#link unix timestamps
-	unixtime=`timestamp "$l"` || continue
-	echo "$unixtime" "$l"
-done | sort -n | while read l ; do
+while read l ; do
 	fullname=${l#* }
 	snapname=${fullname#*@zb-}
 
@@ -37,7 +33,12 @@ done | sort -n | while read l ; do
 	if zfs list -t snapshot -H "${local_zfs}@zb-${snapname}" ; then
 		newest_common="$snapname"
 	fi >/dev/null 2>/dev/null
-done
+done < <(
+ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{print $1;}' | while read l ; do
+	#link unix timestamps
+	unixtime=`timestamp "$l"` || continue
+	echo "$unixtime" "$l"
+done | sort -n )
 
 # some checks
 
