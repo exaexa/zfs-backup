@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 source /etc/profile >/dev/null
 [ -f "$HOME/.zb-rc" ] && source "$HOME/.zb-rc"
