@@ -135,6 +135,26 @@ Check if the environment is the same as when you test the stuff from the command
   missing `ssh-agent`, especially the password-protected privkeys. Descriptions
   of many workarounds are available around the internet.
 
+#### Backups pulling soo sloowwwwwww!
+
+There are two possible bottlenecks. We cannot actually cure ZFS's internal
+`send`/`recv` speed (for that, add a multitude of faster disks and caches), but
+we can usually speed up SSH data tranfer a lot. Best advice currently available
+is this: https://gist.github.com/KartikTalwar/4393116
+
+In short, to use the fastest SSH cipher around, add something like this to your
+user's SSH config file:
+
+```
+Host  fill.in.some.host
+Ciphers arcfour
+```
+
+Make sure that you understand possible security and compatibility implications
+of this configuration. Specifically, note that some recent SSH installations
+disable arcfour-family ciphers completely for a good reason. If you have `aes`
+CPU extension, aes128-gcm could work quite fast as well.
+
 ## Disclaimer
 
 Be sure to verify that this software really fits your use-case before you use
