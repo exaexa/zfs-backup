@@ -4,7 +4,8 @@ source /etc/profile >/dev/null
 [ -f "$HOME/.zb-rc" ] && source "$HOME/.zb-rc"
 
 if [[ -z "$1" || -z "$2" || -z "$3" ]] ; then
-	echo "usage: $0 <ssh_remote> <remote_zfs_object> <local_zfs_object>" >&2
+	echo "usage: $0 <remote> <remote_zfs_object> <local_zfs_object>" >&2
+	echo "<remote> is either ssh-style user@hostname, or - for local operation" >&2
 	exit 1
 fi
 
@@ -16,7 +17,11 @@ timestamp () {
 }
 
 
-ssh_remote="$1"
+if [ "$1" = "-" ]
+then remote_cmd="sh -c"
+else remote_cmd="ssh $1"
+fi
+
 remote_zfs="$2"
 local_zfs="$3"
 
@@ -34,7 +39,7 @@ while read l ; do
 		newest_common="$snapname"
 	fi >/dev/null 2>/dev/null
 done < <(
-ssh $ssh_remote "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{print $1;}' | while read l ; do
+$remote_cmd "zfs list -t snapshot -r -d 1 -H \"${remote_zfs}\" " | awk '{print $1;}' | while read l ; do
 	#link unix timestamps
 	unixtime=`timestamp "$l"` || continue
 	echo "$unixtime" "$l"
@@ -56,11 +61,11 @@ ret=0
 
 if [ "$newest_common" = "N/A" ] ; then
 	#do a full send
-	ssh $ssh_remote "zfs send -R \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
+	$remote_cmd "zfs send -R \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
 	ret=$?
 else
 	#do incremental send
-	ssh $ssh_remote "zfs send -R -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
+	$remote_cmd "zfs send -R -I \"${remote_zfs}@zb-${newest_common}\" \"${remote_zfs}@zb-${newest}\"" | zfs recv -F "${local_zfs}"
 	ret=$?
 fi
 
